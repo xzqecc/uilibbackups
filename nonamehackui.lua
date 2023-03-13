@@ -3013,7 +3013,9 @@ function library.Window(self, info, theme)
     end
 
     function window.Init(self)
-
+	local self = {
+			tabs = {},
+		}
         for _, tab in pairs(self.tabs) do
             tab:Update()
         end
