@@ -3014,7 +3014,10 @@ function library.Window(self, info, theme)
 
     function window.Init(self)
 
-
+        for i, v in pairs(self.tabs) do
+            v:Update()
+        end
+		
         if #self.tabs > 0 then
             self.saved_settings = {}
 
