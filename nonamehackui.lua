@@ -9,6 +9,10 @@ local stats = game:GetService("Stats")
 
 local lplr = plrs.LocalPlayer
 
+-- // some locals!!
+
+local load_start = tick()
+
 -- / vector 2
 
 local v2new = Vector2.new
@@ -29,6 +33,12 @@ local library = {
     groups = {},
     loaded = false,
 }
+
+local folder = "noname.hack/cbro/cfgs"
+
+makefolder("noname.hack")
+makefolder("noname.hack/cbro")
+makefolder("noname.hack/cbro/cfgs")
 
 -- // utility
 
@@ -113,57 +123,10 @@ do
         end)
         rawset(fakeDraw, "__properties", properties)
         rawset(fakeDraw, "children", {})
-
-        local lerpLoop
-
-        function lerp(v1, v2, ptc) -- // exists so it does work for Color3 n shit
-            if typeof(v1) == "number" then
-                return v1 + ((v2 - v1) * ptc)
-            end
-            return v1:Lerp(v2, ptc)
-        end
-
-        rawset(fakeDraw, "Lerp", function(to, time, removeOld)
+        rawset(fakeDraw, "Lerp", function(instanceTo, instanceTime)
             if not rawget(fakeDraw, "__OBJECT_EXIST") then return end
 
-            --utility.vozoid_tween.new(fakeDraw, TweenInfo.new(instanceTime, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), instanceTo):Play()
-
-            local from = {}
-	
-            for i, _ in pairs(to) do
-                from[i] = fakeDraw[i]
-            end
-            
-            local elapsed = 0
-
-            if lerpLoop ~= nil and removeOld then
-                lerpLoop:Disconnect()
-                lerpLoop = nil
-            end
-            
-            local loop; loop = rs.Heartbeat:Connect(function(delta)
-                
-                if elapsed == time then
-                    for i, v in pairs(to) do
-                        fakeDraw[i] = v
-                    end
-
-                    lerpLoop = nil
-                    
-                    loop:Disconnect()
-                end
-
-                local ptc = (elapsed / time)
-                
-                for i, v in pairs(to) do
-                    fakeDraw[i] = lerp(from[i], v, ptc)
-                end
-                
-                elapsed = math.clamp(elapsed + delta, 0, time)
-                
-            end)
-
-            lerpLoop = loop
+            utility.vozoid_tween.new(fakeDraw, TweenInfo.new(instanceTime, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), instanceTo):Play()
 
         end)
 
@@ -309,26 +272,15 @@ do
     utility.short_keybind_names = {["MouseButton1"] = "MB1", ["MouseButton2"] = "MB2", ["MouseButton3"] = "MB3", ["Insert"] = "INS", ["LeftAlt"] = "LALT", ["LeftControl"] = "LC", ["LeftShift"] = "LS", ["RightAlt"] = "RALT", ["RightControl"] = "RC", ["RightShift"] = "RS", ["CapsLock"] = "CAPS", ["Return"] = "RET", ["Backspace"] = "BSP"}
 end
 
-function library.Window(self, info, theme)
-
-    theme = theme or {
-        accent = c3rgb(255, 0, 0),
-        dcont = c3rgb(20, 20, 20),
-        lcont = c3rgb(40, 40, 40),
-        cont = c3rgb(30, 30, 30),
-        outline = c3rgb(0, 0, 0),
-        outline2 = c3rgb(45, 45, 45)
-    }
+function library:Window(info)
 
     local name = info.name or "worst ui library ever"
-    local size = typeof(info.size) == "Vector2" and info.size or v2new(500, 600)
 
-    local window = {shit = {}, kbds = {}, rna = {}, sshit = nil, theme = theme, tabs = {}, _last = {0, 0}, start = v2zero, connections = {}, dragging = false}
+    local window = {shit = {}, kbds = {}, rna = {}, sshit = nil, tabs = {}, accent = c3rgb(12, 157, 0), _last = {0, 0}, start = v2zero, connections = {}, dragging = false}
 
     local main_frame = utility:Draw("Square", nil, {
-        Size = size,
-        Color = window.theme.lcont,
-        Group = "lcont",
+        Size = v2new(500, 600),
+        Color = c3rgb(35, 35, 35),
         Position = utility:RoundVector(utility:ScreenSize() / 2 - v2new(250, 300))
     })
 
@@ -353,17 +305,16 @@ function library.Window(self, info, theme)
         end
     end)
 
-    local main_frame_outline = utility:Draw("Square", v2new(-1, -1), {
+    utility:Draw("Square", v2new(-1, -1), {
         Size = main_frame.Size + v2new(2, 2),
-        Color = window.theme.outline,
-        Group = "outline",
+        Color = c3rgb(20, 20, 20),
         Filled = false,
         Parent = main_frame
     })
 
-    local main_frame_accent = utility:Draw("Square", v2new(-2, -2), {
+    utility:Draw("Square", v2new(-2, -2), {
         Size = main_frame.Size + v2new(4, 4),
-        Color = window.theme.accent,
+        Color = window.accent,
         Filled = false,
         Group = "accent",
         Parent = main_frame
@@ -379,38 +330,34 @@ function library.Window(self, info, theme)
     })
 
     local pretab_frame = utility:Draw("Square", v2new(6, 20), {
-        Size = main_frame.Size - v2new(12, 26),
-        Color = window.theme.dcont,
-        Group = "dcont",
+        Size = v2new(488, 574),
+        Color = c3rgb(25, 25, 25),
         Parent = main_frame
     })
 
-    local pretab_frame_inline = utility:Draw("Square", v2new(-1, -1), {
+    utility:Draw("Square", v2new(-1, -1), {
         Size = pretab_frame.Size + v2new(2, 2),
-        Color = window.theme.dcont,
-        Group = "dcont",
+        Color = c3rgb(20, 20, 20),
         Filled = false,
         Parent = pretab_frame
     })
 
-    local pretab_frame_outline = utility:Draw("Square", v2new(-2, -2), {
+    utility:Draw("Square", v2new(-2, -2), {
         Size = pretab_frame.Size + v2new(4, 4),
-        Color = c3rgb(),
-        Group = "outline",
+        Color = Color3.new(),
         Filled = false,
         Parent = pretab_frame
     })
 
     local tabs_frame = utility:Draw("Square", v2new(6, 23), {
-        Size = main_frame.Size - v2new(24, 55),
-        Color = window.theme.lcont,
-        Group = "lcont",
+        Size = v2new(476, 545),
+        Color = c3rgb(35, 35, 35),
         Parent = pretab_frame
     })
 
     local tab_frame_accent = utility:Draw("Square", v2zero, {
         Size = v2new(0, 1),
-        Color = window.theme.accent,
+        Color = window.accent,
         Group = "accent",
         ZIndex = 1
     })
@@ -424,10 +371,9 @@ function library.Window(self, info, theme)
         end
     end)
 
-    local tabs_frame_outline = utility:Draw("Square", v2new(-1, -1), {
+    utility:Draw("Square", v2new(-1, -1), {
         Size = tabs_frame.Size + v2new(2, 2),
-        Color = window.theme.outline2,
-        Group = "outline2",
+        Color = c3rgb(45, 45, 45),
         Filled = false,
         Parent = tabs_frame
     })
@@ -451,14 +397,13 @@ function library.Window(self, info, theme)
 
         local tab_frame = utility:Draw("Square", offset, {
             Size = v2new(utility:GetPlexSize(name) + 12, 18),
-            Color = window.theme.lcont,
+            Color = c3rgb(35, 35, 35),
             Parent = tabs_frame
         })
 
         local tab_frame_outline = utility:Draw("Square", v2new(-1, -1), {
             Size = tab_frame.Size + v2new(2, 2),
-            Color = window.theme.outline2,
-            Group = "outline2",
+            Color = c3rgb(45, 45, 45),
             Filled = false,
             Parent = tab_frame
         })
@@ -475,8 +420,7 @@ function library.Window(self, info, theme)
 
         local tab_frame_hider = utility:Draw("Square", v2new(0, tab_frame.Size.Y), {
             Size = v2new(tab_frame.Size.X, 1),
-            Color = window.theme.lcont,
-            Group = "lcont",
+            Color = c3rgb(35, 35, 35),
             Parent = tab_frame
         })
 
@@ -485,20 +429,19 @@ function library.Window(self, info, theme)
         table.insert(self.tabs, tab)
 
         function tab.Show(self)
-            tab_frame.Color = window.theme.lcont
+            tab_frame.Color = c3rgb(35, 35, 35)
             tab_frame_hider.Visible = true
 
             for i, v in pairs(self.sections) do
                 v:Show()
+                v:Update()
             end
 
             self.on = true
-
-            self:Update()
         end
 
         function tab.Hide(self)
-            tab_frame.Color = window.theme.dcont
+            tab_frame.Color = c3rgb(25, 25, 25)
             tab_frame_hider.Visible = false
 
             for i, v in pairs(self.sections) do
@@ -506,8 +449,6 @@ function library.Window(self, info, theme)
             end
 
             self.on = false
-
-            self:Update()
         end
 
         function tab.Update(self)
@@ -544,14 +485,8 @@ function library.Window(self, info, theme)
 
                     -- // set offset
 
-                    v.instances[1].SetOffset(v2new(sn == 1 and 6 or tabs_frame.Size.X/2+6, offset))
+                    v.instances[1].SetOffset(v2new(sn == 1 and 6 or tabs_frame.Size.X - 234, offset))
                 end
-            end
-
-            tab_frame.Color = self.on and window.theme.lcont or window.theme.dcont
-
-            for i, v in pairs(self.sections) do
-                v:Update()
             end
         end
 
@@ -568,46 +503,42 @@ function library.Window(self, info, theme)
 
             -- // section
 
-            local section = {name = name, side = side, instances = {}, scale = 0, things = {buttons = {}, toggles = {}, textboxes = {}, dropdowns = {}, sliders = {}, colorpickers ={}, keybinds = {}, lists = {}}, rna = render_non_attached}
+            local section = {name = name, instances = {}, scale = 0, things = {buttons = {}, toggles = {}, sliders = {}, keybinds = {}}, rna = render_non_attached}
 
             local section_frame 
 
             if section.rna then
-                section_frame = utility:Draw("Square", v2new(side == "left" and 6 or tabs_frame.Size.X/2 - 6, 16), {
+                section_frame = utility:Draw("Square", v2new(side == "left" and 6 or tabs_frame.Size.X - 234, 16), {
                     Size = v2new(228, section.scale),
-                    Color = window.theme.cont,
-                    Group = "cont"
+                    Color = c3rgb(30, 30, 30),
                 })
 
                 table.insert(window.rna, section)
             else
-                section_frame = utility:Draw("Square", v2new(side == "left" and 6 or tabs_frame.Size.X/2 - 6, 16), {
-                    Size = v2new(tabs_frame.Size.X / 2 - 12, section.scale),
-                    Color = window.theme.cont,
-                    Group = "cont",
+                section_frame = utility:Draw("Square", v2new(side == "left" and 6 or tabs_frame.Size.X - 234, 16), {
+                    Size = v2new(228, section.scale),
+                    Color = c3rgb(30, 30, 30),
                     Parent = tabs_frame
                 })
             end
 
             local section_inline = utility:Draw("Square", v2new(-1, -1), {
                 Size = section_frame.Size + v2new(2, 2),
-                Color = window.theme.outline,
-                Group = "outline",
+                Color = c3rgb(),
                 Filled = false,
                 Parent = section_frame
             })
 
             local section_outline = utility:Draw("Square", v2new(-2, -2), {
                 Size = section_frame.Size + v2new(4, 4),
-                Color = window.theme.lcont,
-                Group = "lcont",
+                Color = c3rgb(40, 40, 40),
                 Filled = false,
                 Parent = section_frame
             })
 
             local section_accent = utility:Draw("Square", v2new(0, 0), {
                 Size = v2new(8, 2),
-                Color = window.theme.accent,
+                Color = window.accent,
                 Group = "accent",
                 Parent = section_frame
             })
@@ -630,8 +561,8 @@ function library.Window(self, info, theme)
             })
 
             local section_accent2 = utility:Draw("Square", v2new(11 + (#name * 7), 0), {
-                Size = v2new(section_frame.Size.X - (11 + (#name * 7)), 2),
-                Color = window.theme.accent,
+                Size = v2new(228 - (11 + (#name * 7)), 2),
+                Color = window.accent,
                 Group = "accent",
                 Parent = section_frame
             })
@@ -661,22 +592,12 @@ function library.Window(self, info, theme)
             end
 
             function section.Update(self)
-
-                local tside = tab.sides[self.side == "left" and 1 or 2]
-
-                section_frame.Size = v2new(self.rna and 228 or tabs_frame.Size.X / 2 - 12, table.find(tside, self) == #tside and tabs_frame.Size.Y - (section_frame.GetOffset().Y+5) or self.scale > 0 and self.scale or 10)
+                section_frame.Size = v2new(228, self.scale > 0 and self.scale or 10)
                 section_inline.Size = section_frame.Size + v2new(2, 2)
                 section_outline.Size = section_inline.Size + v2new(2, 2)
-                section_accent2.Size = v2new(section_frame.Size.X - (11 + (#name * 7)), 2)
 
-                for i, v in pairs(self.things.lists) do
-                    v:update()
-                end
-
-                for _, thing in pairs({"buttons", "dropdowns", "sliders", "textboxes", "keybinds", "colorpickers", "toggles"}) do
-                    for i, v in pairs(section.things[thing]) do
-                        v:Update()
-                    end
+                for i, v in pairs(self.things.toggles) do
+                    v:UpdateColor()
                 end
             end
 
@@ -697,7 +618,7 @@ function library.Window(self, info, theme)
                     if tab.on then
                         for i, v in pairs(section.things.toggles) do
                             if is_it_visible then break end
-                            local toggle_frame = getupvalue(v.Update, 1)
+                            local toggle_frame = getupvalue(v.UpdateColor, 1)
 
                             if v.tt ~= "" and utility:MouseOverPosition({section_frame.Position + v2new(0, toggle_frame.GetOffset().Y), section_frame.Position + v2new(section_frame.Size.X, toggle_frame.GetOffset().Y + 17)}) then
                                 is_it_visible = true
@@ -731,8 +652,7 @@ function library.Window(self, info, theme)
 
                 local keybind_frame = utility:Draw("Square", offsets[1], {
                     Size = v2new(40, 12),
-                    Color = window.theme.lcont,
-                    Group = "lcont",
+                    Color = c3rgb(40, 40, 40),
                     Parent = parent
                 })
 
@@ -751,8 +671,7 @@ function library.Window(self, info, theme)
 
                 local keybind_outline = utility:Draw("Square", v2new(-1, -1), {
                     Size = keybind_frame.Size + v2new(2, 2),
-                    Color = window.theme.outline,
-                    Group = "outline",
+                    Color = c3rgb(),
                     Filled = false,
                     Parent = keybind_frame
                 })
@@ -778,17 +697,9 @@ function library.Window(self, info, theme)
                 function keybind.Get(self)
                     return {self.value, self.mode}
                 end
-
-                function keybind.SetOffset(self, offset)
-                    keybind_frame.SetOffset(offset)
-                end
                 
                 function keybind.Update(self)
                     keybind_value.Text = utility.short_keybind_names[self.value] or self.value:upper()
-
-                    if parent == section_frame then
-                        self:SetOffset(v2new(parent.Size.X - 46, offsets[1].Y))
-                    end
 
                     if window.kblist then
                         window.kblist:Update()
@@ -825,8 +736,6 @@ function library.Window(self, info, theme)
                         for i, v in pairs(self.minst) do
                             v.Remove()
                         end
-
-                        table.clear(self.minst)
                     end
 
                     window.shit.keybind = nil
@@ -837,15 +746,13 @@ function library.Window(self, info, theme)
                     window:HideUselessDumbassFuckingShitStopPastingMyCodePleaseYouAreSkidAndImGayILikeBigBlackManOkNoProblemThisIsASexcretFuncteiotieitns4epoivi2n45obvi6j45bv74gvho4hgv487()
                     
                     local mframe = utility:Draw("Square", v2new(0, 15), {
-                        Color = window.theme.dcont,
-                        Group = "dcont",
+                        Color = c3rgb(20, 20, 20),
                         Size = v2new(48, 5 + 26),
                         Parent = keybind_frame
                     })
 
                     local mframe_outline = utility:Draw("Square", v2new(-1, -1), {
-                        Color = window.theme.outline,
-                        Group = "outline",
+                        Color = c3rgb(),
                         Size = mframe.Size + v2new(2, 2),
                         Filled = false,
                         Parent = mframe
@@ -858,7 +765,7 @@ function library.Window(self, info, theme)
                         modes[i] = utility:Draw("Text", v2new(3, 2 + 14 * (i-1)), {
                             Font = 2,
                             Size = 13,
-                            Color = self.mode == v:lower() and window.theme.accent or c3rgb(255, 255, 255),
+                            Color = self.mode == v:lower() and window.accent or c3rgb(255, 255, 255),
                             Group = "accent",
                             Outline = true,
                             Text = v,
@@ -893,7 +800,7 @@ function library.Window(self, info, theme)
                                         end
 
                                         for i, v in pairs({keybind.minst[3], keybind.minst[4]}) do
-                                            v.Color = keybind.mode == v.Text:lower() and window.theme.accent or c3rgb(255, 255, 255)
+                                            v.Color = keybind.mode == v.Text:lower() and window.accent or c3rgb(255, 255, 255)
                                         end
                                     else
                                         keybind:Close()
@@ -930,7 +837,7 @@ function library.Window(self, info, theme)
                 utility:Connect(uis.InputEnded, function(input)
                     if not keybind.binding and keybind.mode == "hold" then
                         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.MouseButton2 then
-                            if keybind.value == input.UserInputType.Name then
+                            if keybind.value == input.UserInputType then
                                 if table.find(window.kbds, keybind.pointer) then
                                     table.remove(window.kbds, table.find(window.kbds, keybind.pointer))
 
@@ -963,8 +870,6 @@ function library.Window(self, info, theme)
 
                 table.insert(section.things.keybinds, keybind)
 
-                return keybind
-
             end
 
             function section._Colorpicker(self, info, offsets, parent, do_update, pointer, cptable)
@@ -973,12 +878,11 @@ function library.Window(self, info, theme)
                 local trans = info.trans or info.transparency
                 local deftrans = info.deftrans or info.defaultrans or 0
                 local flag = info.flag
-                local callback = info.callback or function() end
 
-                local colorpicker = {value = def, name = name, trans = trans, callback = callback, pointer = pointer, flag = flag, dvalues = {}, instances = {}}
+                local colorpicker = {value = def, name = name, trans = trans, transval = deftrans, pointer = pointer, flag = flag, dvalues = {}, instances = {}}
 
                 if pointer then
-                    library.pointers[pointer] = colorpicker
+                    library.flags[pointer] = colorpicker
                 end
 
                 table.insert(cptable, colorpicker)
@@ -991,8 +895,7 @@ function library.Window(self, info, theme)
 
                 local cpframe_outline = utility:Draw("Square", v2new(-1, -1), {
                     Size = cpframe.Size + v2new(2, 2),
-                    Color = window.theme.outline,
-                    Group = "outline",
+                    Color = c3rgb(),
                     Filled = false,
                     Parent = cpframe
                 })
@@ -1019,32 +922,22 @@ function library.Window(self, info, theme)
                 end 
 
                 function colorpicker.Get(self)
-                    return not self.trans and {self.value:ToHSV()} or {{self.value[1]:ToHSV()}, self.value[2]}
-                end
-
-                function colorpicker.SetOffset(self, offset)
-                    cpframe.SetOffset(offset)
+                    return self.trans ~= nil and {self.value, self.trans} or self.value
                 end
 
                 function colorpicker.Update(self)
-                    cpframe.Color = self.trans and self.value[1] or self.value
-
-                    if parent == section_frame then
-                        self:SetOffset(v2new(parent.Size.X - 36, offsets[1].Y))
-                    end
+                    cpframe.Color = self.trans ~= nil and self.value[1] or self.value
                 end
 
                 function colorpicker.Set(self, value)
 
-                    self.value = not self.trans and c3hsv(unpack(value)) or {c3hsv(value[1][1], value[1][2], value[1][3]), value[2]}
+                    self.value = value
 
                     if colorpicker.flag ~= nil then
                         library.flags[flag] = self.value
                     end
 
                     self:Update()
-
-                    self.callback(self.value)
                 end
 
                 function colorpicker.Close(self)
@@ -1063,27 +956,33 @@ function library.Window(self, info, theme)
 
                     window:HideUselessDumbassFuckingShitStopPastingMyCodePleaseYouAreSkidAndImGayILikeBigBlackManOkNoProblemThisIsASexcretFuncteiotieitns4epoivi2n45obvi6j45bv74gvho4hgv487()
 
-                    local hsv = (self.trans and {self.value[1]:ToHSV()}) or {self.value:ToHSV()}
+                    local h, s, v = self.value:ToHSV()
 
-                    self.dvalues = {hsv[1], hsv[2], hsv[3], self.trans and self.value[2] or 0, false, false, false}
+                    if h == 0 then
+                        h = 1
+                    end
+
+                    if v == 0 then
+                        v = 1
+                    end
+
+                    self.dvalues = {h, s, v, self.transval, false, false, false}
 
                     local cpdropframe = utility:Draw("Square", v2new(35, 0), {
-                        Color = window.theme.dcont,
-                        Group = "dcont",
+                        Color = c3rgb(20, 20, 20),
                         Size = v2new(self.trans and 152 or 137, 120),
                         Parent = cpframe
                     })
 
                     local cpdropframe_outline = utility:Draw("Square", v2new(-1, -1), {
-                        Color = window.theme.outline,
-                        Group = "outline",
+                        Color = c3rgb(),
                         Size = cpdropframe.Size + v2new(2, 2),
                         Filled = false,
                         Parent = cpdropframe
                     })
 
                     local cpdropframe_accent = utility:Draw("Square", v2zero, {
-                        Color = window.theme.accent,
+                        Color = window.accent,
                         Group = "accent",
                         Size = v2new(cpdropframe.Size.X, 1),
                         Parent = cpdropframe
@@ -1096,8 +995,7 @@ function library.Window(self, info, theme)
                     })
 
                     local cpdropframe_color_outline = utility:Draw("Square", v2new(-1, -1), {
-                        Color = window.theme.outline,
-                        Group = "outline",
+                        Color = c3rgb(),
                         Size = cpdropframe_color.Size + v2new(2, 2),
                         Filled = false,
                         Parent = cpdropframe_color
@@ -1115,16 +1013,14 @@ function library.Window(self, info, theme)
                     })
 
                     local cpdropframe_color_cursor_outline = utility:Draw("Square", v2new(-1, -1), {
-                        Color = window.theme.outline,
-                        Group = "outline",
+                        Color = c3rgb(),
                         Size = cpdropframe_color_cursor.Size + v2new(2, 2),
                         Filled = false,
                         Parent = cpdropframe_color_cursor
                     })
 
                     local cpdropframe_hue = utility:Draw("Square", v2new(120, 10), {
-                        Color = window.theme.outline,
-                        Group = "outline",
+                        Color = c3rgb(),
                         Size = v2new(7, 100),
                         Filled = false,
                         Parent = cpdropframe
@@ -1135,23 +1031,21 @@ function library.Window(self, info, theme)
                         Parent = cpdropframe_hue
                     })
 
-                    local cpdropframe_hue_picker = utility:Draw("Square", v2new(0, math.clamp(math.floor(self.dvalues[1]*100), 0, 99)), {
+                    local cpdropframe_hue_picker = utility:Draw("Square", v2new(0, 0), {
                         Color = c3rgb(255, 255, 255),
                         Size = v2new(7, 1),
                         Parent = cpdropframe_hue
                     })
 
                     local cpdropframe_hue_picker_outline = utility:Draw("Square", v2new(-1, -1), {
-                        Color = window.theme.outline,
-                        Group = "outline",
+                        Color = c3rgb(),
                         Size = cpdropframe_hue_picker.Size + v2new(2, 2),
                         Filled = false,
                         Parent = cpdropframe_hue_picker
                     })
 
                     local cpdropframe_trans = utility:Draw("Square", v2new(137, 10), {
-                        Color = window.theme.outline,
-                        Group = "outline",
+                        Color = c3rgb(),
                         Size = v2new(7, 100),
                         Filled = false,
                         Parent = cpdropframe
@@ -1162,15 +1056,14 @@ function library.Window(self, info, theme)
                         Parent = cpdropframe_trans
                     })
 
-                    local cpdropframe_trans_picker = utility:Draw("Square", v2new(0, math.clamp(math.floor(self.dvalues[4]*100), 0, 99)), {
+                    local cpdropframe_trans_picker = utility:Draw("Square", v2new(0, 0), {
                         Color = c3rgb(255, 255, 255),
                         Size = v2new(7, 1),
                         Parent = cpdropframe_trans
                     })
 
                     local cpdropframe_trans_picker_outline = utility:Draw("Square", v2new(-1, -1), {
-                        Color = window.theme.outline,
-                        Group = "outline",
+                        Color = c3rgb(),
                         Size = cpdropframe_trans_picker.Size + v2new(2, 2),
                         Filled = false,
                         Parent = cpdropframe_trans_picker
@@ -1202,12 +1095,12 @@ function library.Window(self, info, theme)
                     return section:_Colorpicker(info, {v2new(-35, 0) , v2zero}, cpframe, false, pointer .. "Colorpicker", cptable)
                 end
 
-                colorpicker:Set(colorpicker.trans and {{colorpicker.value:ToHSV()}, deftrans} or {colorpicker.value:ToHSV()})
+                colorpicker:Set(colorpicker.trans and {colorpicker.value, colorpicker.transval} or colorpicker.value)
 
                 utility:Connect(uis.InputBegan, function(input)
                     if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                        if main_frame.Visible and (tab.on or table.find(window.rna, section)) then 
-                            if not window:FakeRealMouseFuckingImAloneGoingToKillMyselfWithKnife(section) and utility:MouseOverDrawing(cpframe) then
+                        if main_frame.Visible and (tab.on or table.find(window.rna, section)) and not window:FakeRealMouseFuckingImAloneGoingToKillMyselfWithKnife(section) then 
+                            if utility:MouseOverDrawing(cpframe) then
                                 colorpicker:Open()
                             else
                                 if #colorpicker.instances > 0 then
@@ -1260,7 +1153,7 @@ function library.Window(self, info, theme)
                                         local dvalues = colorpicker.dvalues
                                         local color = c3hsv(dvalues[1], dvalues[2], dvalues[3])
 
-                                        colorpicker:Set(colorpicker.trans and {{color:ToHSV()}, dvalues[4]} or {color:ToHSV()})
+                                        colorpicker:Set(colorpicker.trans and {color, dvalues[4]} or color)
                                     else
                                         colorpicker:Close()
                                     end
@@ -1274,7 +1167,7 @@ function library.Window(self, info, theme)
 
                 utility:Connect(uis.InputChanged, function(input)
                     if input.UserInputType == Enum.UserInputType.MouseMovement and #colorpicker.instances > 0 then
-                        if main_frame.Visible and (tab.on or table.find(window.rna, section)) then
+                        if main_frame.Visible and (tab.on or table.find(window.rna, section)) and not window:FakeRealMouseFuckingImAloneGoingToKillMyselfWithKnife(section) then
                             if colorpicker.dvalues[5] then
                                 local mouse_pos = uis:GetMouseLocation()
                                 local offset = mouse_pos - colorpicker.instances[4].Position
@@ -1320,7 +1213,7 @@ function library.Window(self, info, theme)
                             local dvalues = colorpicker.dvalues
                             local color = c3hsv(dvalues[1], dvalues[2], dvalues[3])
 
-                            colorpicker:Set(colorpicker.trans and {{color:ToHSV()}, dvalues[4]} or {color:ToHSV()})
+                            colorpicker:Set(colorpicker.trans and {color, dvalues[4]} or color)
                         end
                     end
                 end)
@@ -1377,7 +1270,7 @@ function library.Window(self, info, theme)
                         local dvalues = colorpicker.dvalues
                         local color = c3hsv(dvalues[1], dvalues[2], dvalues[3])
 
-                        colorpicker:Set(colorpicker.trans and {{color:ToHSV()}, dvalues[4]} or {color:ToHSV()})
+                        colorpicker:Set(colorpicker.trans and {color, dvalues[4]} or color)
                     end
                 end)
 
@@ -1386,8 +1279,6 @@ function library.Window(self, info, theme)
                 if do_update then
                     self:UpdateScale(13)
                 end
-
-                table.insert(self.things.colorpickers, colorpicker)
 
                 return colorpicker
             end
@@ -1400,16 +1291,14 @@ function library.Window(self, info, theme)
                 local button = {name = name, callback = callback}
 
                 local button_frame = utility:Draw("Square", v2new(6, self:NextObjectPosition()), {
-                    Size = v2new(section_frame.Size.X - 12, 18),
-                    Color = window.theme.lcont,
-                    Group = "lcont",
+                    Size = v2new(216, 18),
+                    Color = c3rgb(40, 40, 40),
                     Parent = section_frame
                 })
 
                 local button_outline = utility:Draw("Square", v2new(-1, -1), {
                     Size = button_frame.Size + v2new(2, 2),
-                    Color = window.theme.outline,
-                    Group = "outline",
+                    Color = c3rgb(),
                     Filled = false,
                     Parent = button_frame
                 })
@@ -1431,13 +1320,6 @@ function library.Window(self, info, theme)
                 })
 
                 utility:Image(button_gradient, "https://i.imgur.com/j9y4dux.png")
-
-                function button.Update(self)
-                    button_frame.Size = v2new(section_frame.Size.X - 12, 18)
-                    button_outline.Size = button_frame.Size + v2new(2, 2)
-                    button_gradient.Size = button_frame.Size
-                    button_title.SetOffset(v2new(button_frame.Size.X/2, 2))
-                end
 
                 utility:Connect(uis.InputBegan, function(input)
                     if input.UserInputType == Enum.UserInputType.MouseButton1 and main_frame.Visible and tab.on and not window:FakeRealMouseFuckingImAloneGoingToKillMyselfWithKnife(section) and utility:MouseOverPosition({section_frame.Position + v2new(0, button_frame.GetOffset().Y), section_frame.Position + v2new(section_frame.Size.X, button_frame.GetOffset().Y + 18)}) then
@@ -1467,16 +1349,14 @@ function library.Window(self, info, theme)
                 end
 
                 local textbox_frame = utility:Draw("Square", v2new(6, self:NextObjectPosition()), {
-                    Size = v2new(section_frame.Size.X - 12, 18),
-                    Color = window.theme.lcont,
-                    Group = "lcont",
+                    Size = v2new(216, 18),
+                    Color = c3rgb(40, 40, 40),
                     Parent = section_frame
                 })
 
                 local textbox_outline = utility:Draw("Square", v2new(-1, -1), {
                     Size = textbox_frame.Size + v2new(2, 2),
-                    Color = window.theme.outline,
-                    Group = "outline",
+                    Color = c3rgb(),
                     Filled = false,
                     Parent = textbox_frame
                 })
@@ -1499,24 +1379,18 @@ function library.Window(self, info, theme)
                 utility:Image(textbox_gradient, "https://i.imgur.com/j9y4dux.png")
 
                 function textbox.Update(self)
-                    textbox_frame.Size = v2new(section_frame.Size.X - 12, 18)
-                    textbox_outline.Size = textbox_frame.Size + v2new(2, 2)
-                    textbox_gradient.Size = textbox_frame.Size
-
-                    local max = math.floor(textbox_frame.Size.X/7)-3
-
                     if self.value == "" then
                         textbox_title.Color = c3rgb(170, 170, 170)
 
-                        local sub = self.name:sub(1, max)
+                        local sub = self.name:sub(1, 27)
 
-                        textbox_title.Text = sub .. (#self.name > max and "..." or "")
+                        textbox_title.Text = sub .. (#sub == 27 and "..." or "")
                     else
                         textbox_title.Color = c3rgb(255, 255, 255)
 
-                        local sub = self.value:sub(1, max)
+                        local sub = self.value:sub(1, 27)
 
-                        textbox_title.Text = sub .. (#self.value > max and "..." or "")
+                        textbox_title.Text = sub .. (#sub == 27 and "..." or "")
                     end
                 end
 
@@ -1539,9 +1413,7 @@ function library.Window(self, info, theme)
                 function textbox.Set(self, value)
                     self.value = value
 
-                    if self.flag then
-                        library.flags[self.flag] = value
-                    end
+                    library.flags[self.flag] = value
 
                     self:Update()
                 end
@@ -1578,8 +1450,6 @@ function library.Window(self, info, theme)
 
                 self:UpdateScale(18)
 
-                table.insert(self.things.textboxes, textbox)
-
                 return textbox
             end
 
@@ -1605,8 +1475,7 @@ function library.Window(self, info, theme)
 
                 local toggle_outline = utility:Draw("Square", v2new(-1, -1), {
                     Size = toggle_frame.Size + v2new(2, 2),
-                    Color = window.theme.outline,
-                    Group = "outline",
+                    Color = c3rgb(),
                     Filled = false,
                     Parent = toggle_frame
                 })
@@ -1632,48 +1501,35 @@ function library.Window(self, info, theme)
                     return self.state
                 end
 
-                function toggle.Update(self)
-                    toggle_frame.Color = self.state and window.theme.accent or window.theme.lcont
+                function toggle.UpdateColor(self)
+                    toggle_frame.Color = self.state and window.accent or c3rgb(40, 40, 40)
+                end
 
-                    if self.keybind then
-                        self.keybind:SetOffset(v2new(section_frame.Size.X - (45+8), -1))
-                    end
-
-                    if self.fcp then
-                        self.fcp:SetOffset(v2new(section_frame.Size.X - (35+8), -1))
-                    end
-
+                function toggle.UpdateFlag(self, state)
                     if self.flag then
-                        library.flags[self.flag] = self.state
+                        library.flags[self.flag] = state
                     end
                 end
 
                 function toggle.Set(self, state)
                     self.state = state
 
-                    self:Update()
+                    self:UpdateColor()
+                    self:UpdateFlag(self.state)
 
                     self.callback(self.state)
                 end
 
                 function toggle.Keybind(self, info)
                     info.name = self.name
-
-                    self.keybind = section:_Keybind(info, {v2new(section_frame.Size.X - (45+8), -1), v2new()}, toggle_frame, false, tab.name .. section.name .. info.name .. "Keybind", section.name)
-                    
-                    self.kexs = true
-
-                    return self.keybind
+                    section:_Keybind(info, {toggle_frame.GetOffset() + v2new(169, -14), v2new()}, toggle_frame, false, tab.name .. section.name .. info.name .. "Keybind", section.name)
+                    toggle.kexs = true
                 end
 
                 function toggle.Colorpicker(self, info)
                     info.name = self.name
-
                     self.cps = {}
-
-                    self.fcp = section:_Colorpicker(info, {v2new(section_frame.Size.X - (35+8), -1), v2new()}, toggle_frame, false, tab.name .. section.name .. info.name .. "Colorpicker", self.cps)
-
-                    return self.fcp
+                    return section:_Colorpicker(info, {toggle_frame.GetOffset() + v2new(179, -14), v2new()}, toggle_frame, false, tab.name .. section.name .. info.name .. "Colorpicker", self.cps)
                 end
 
                 toggle:Set(default)
@@ -1704,13 +1560,11 @@ function library.Window(self, info, theme)
                 local def = info.def or min
                 local dec = info.dec or 1
                 local suf = info.suf or ""
-                local mintval = info.mintval or info.min_text_value
-                local maxtval = info.maxtval or info.max_text_value
                 local flag = info.flag or ""
                 local callback = info.callback or function() end
                 local pointer = info.pointer or tab.name .. section.name .. name
 
-                local slider = {name = name, flag = flag, pointer = pointer, value = def, min = min, max = max, suf = suf, dec = dec, mintval = mintval, maxtval = maxtval, holding = false, callback = callback}
+                local slider = {name = name, flag = flag, pointer = pointer, value = def, min = min, max = max, suf = suf, dec = dec, holding = false, callback = callback}
 
                 if pointer then
                     library.pointers[pointer] = slider
@@ -1725,32 +1579,21 @@ function library.Window(self, info, theme)
                     Parent = section_frame
                 })
 
-                local slider_pm = utility:Draw("Text", v2new(section_frame.Size.X-33, 0), {
-                    Color = c3rgb(255, 255, 255),
-                    Outline = true,
-                    Size = 13,
-                    Font = 2,
-                    Text = "- +",
-                    Parent = slider_title
-                })
-
                 local slider_frame = utility:Draw("Square", v2new(0, 16), {
-                    Size = v2new(section_frame.Size.X - 12, 10),
-                    Color = window.theme.lcont,
-                    Group = "lcont",
+                    Size = v2new(216, 8),
+                    Color = c3rgb(40, 40, 40),
                     Parent = slider_title
                 })
 
                 local slider_outline = utility:Draw("Square", v2new(-1, -1), {
                     Size = slider_frame.Size + v2new(2, 2),
-                    Color = window.theme.outline,
-                    Group = "outline",
+                    Color = c3rgb(),
                     Filled = false,
                     Parent = slider_frame
                 })
 
                 local slider_bar = utility:Draw("Square", v2new(), {
-                    Color = window.theme.accent,
+                    Color = window.accent,
                     Size = v2new(0, slider_frame.Size.Y),
                     Group = "accent",
                     Parent = slider_frame
@@ -1778,19 +1621,15 @@ function library.Window(self, info, theme)
                     return self.value
                 end
                 
-                function slider.Update(self)
-                    slider_frame.Size = v2new(section_frame.Size.X - 12, 10)
-                    slider_outline.Size = slider_frame.Size + v2new(2, 2)
-                    slider_gradient.Size = slider_frame.Size
-                    slider_value.SetOffset(v2new(slider_frame.Size.X/2, -2))
-                    slider_pm.SetOffset(v2new(section_frame.Size.X-33, 0))
-
-                    slider_value.Text = self.mintval and self.value == self.min and self.mintval or self.maxtval and self.value == self.max and self.maxtval or ("%s%s"):format(tostring(self.value), tostring(slider.suf))
+                function slider.UpdateValue(self)
+                    slider_value.Text = tostring(self.value) .. "/" .. tostring(self.max) .. self.suf
 
                     local percent = 1 - (self.max - self.value) / (self.max - self.min)
 
-                    slider_bar.Size = v2new(percent * slider_frame.Size.X, slider_frame.Size.Y)
+                    slider_bar.Size = Vector2.new(percent * slider_frame.Size.X, slider_frame.Size.Y)
+                end
 
+                function slider.UpdateFlag(self)
                     if self.flag then
                         library.flags[self.flag] = self.value
                     end
@@ -1799,7 +1638,8 @@ function library.Window(self, info, theme)
                 function slider.Set(self, value)
                     self.value = value
 
-                    self:Update()
+                    self:UpdateValue()
+                    self:UpdateFlag()
 
                     callback(self.value)
                 end
@@ -1808,26 +1648,11 @@ function library.Window(self, info, theme)
 
                 utility:Connect(uis.InputBegan, function(input)
                     if input.UserInputType == Enum.UserInputType.MouseButton1 and main_frame.Visible and (tab.on or table.find(window.rna, section)) and not window:FakeRealMouseFuckingImAloneGoingToKillMyselfWithKnife(section) and utility:MouseOverPosition({section_frame.Position + v2new(0, slider_title.GetOffset().Y), section_frame.Position + v2new(section_frame.Size.X, slider_title.GetOffset().Y + 29)}) then
-                        if utility:MouseOverPosition({section_frame.Position + v2new(section_frame.Size.X-27, slider_title.GetOffset().Y), section_frame.Position + v2new(section_frame.Size.X, slider_title.GetOffset().Y+14)}) then
-                            local offset = uis:GetMouseLocation().X - slider_pm.Position.X
-                            if offset < 15 then
-                                slider:Set(math.clamp(math.floor((slider.value - (1 / slider.dec)) * slider.dec) / slider.dec, slider.min, slider.max))
-                            elseif offset > 15 then
-                                local value_fix = (slider.value + (1 / slider.dec))
-
-                                if value_fix % (1 / slider.dec) ~= 0 then
-                                    value_fix = math.round(value_fix * (slider.dec * 10)) / (slider.dec * 10)
-                                end
-
-                                slider:Set(math.clamp(math.floor(value_fix * slider.dec) / slider.dec, slider.min, slider.max))
-                            end
-                        else
-                            slider.holding = true
-                            local percent = math.clamp(uis:GetMouseLocation().X - slider_bar.Position.X, 0, slider_frame.Size.X) / slider_frame.Size.X
-                            local value = math.floor((slider.min + (slider.max - slider.min) * percent) * slider.dec) / slider.dec
-                            value = math.clamp(value, slider.min, slider.max)
-                            slider:Set(value)
-                        end
+                        slider.holding = true
+                        local percent = math.clamp(uis:GetMouseLocation().X - slider_bar.Position.X, 0, slider_frame.Size.X) / slider_frame.Size.X
+                        local value = math.floor((slider.min + (slider.max - slider.min) * percent) * slider.dec) / slider.dec
+                        value = math.clamp(value, slider.min, slider.max)
+                        slider:Set(value)
                     end
                 end)
 
@@ -1850,11 +1675,11 @@ function library.Window(self, info, theme)
                     end
                 end)
 
-                slider.instances = {slider_title, slider_frame, slider_outline, slider_bar, slider_gradient, slider_value, slider_pm}
+                self.instances = utility:Combine(self.instances, {slider_title, slider_frame, slider_outline, slider_bar, slider_gradient, slider_value})
 
-                self.instances = utility:Combine(self.instances, slider.instances)
+                slider.instances = {slider_title, slider_frame, slider_outline, slider_bar, slider_gradient, slider_value}
 
-                self:UpdateScale(28)
+                self:UpdateScale(26)
 
                 table.insert(self.things.sliders, slider)
 
@@ -1892,16 +1717,14 @@ function library.Window(self, info, theme)
                 })
 
                 local dropdown_frame = utility:Draw("Square", v2new(0, 17), {
-                    Size = v2new(section_frame.Size.X - 12, 18),
-                    Color = window.theme.lcont,
-                    Group = "lcont",
+                    Size = v2new(216, 18),
+                    Color = c3rgb(40, 40, 40),
                     Parent = dropdown_title
                 })
 
                 local dropdown_outline = utility:Draw("Square", v2new(-1, -1), {
                     Size = dropdown_frame.Size + v2new(2, 2),
-                    Color = window.theme.outline,
-                    Group = "outline",
+                    Color = c3rgb(),
                     Filled = false,
                     Parent = dropdown_frame
                 })
@@ -1943,27 +1766,31 @@ function library.Window(self, info, theme)
                     self.scrolling[2] = self.visOptions
                     
                     local list_frame = utility:Draw("Square", v2new(0, 19), {
-                        Size = v2new(dropdown_frame.Size.X, 2+16*#self.options),
-                        Color = window.theme.dcont,
-                        Group = "dcont",
+                        Size = v2new(216, 2+16*#self.options),
+                        Color = c3rgb(40, 40, 40),
                         Parent = dropdown_frame
                     })
 
                     if self.scrollable and #self.options > self.visOptions then
-                        list_frame.Size = v2new(dropdown_frame.Size.X, 2+16*self.visOptions)
+                        list_frame.Size = v2new(216, 2+16*self.visOptions)
                     end
 
                     local list_outline = utility:Draw("Square", v2new(-1, -1), {
                         Size = list_frame.Size + v2new(2, 2),
-                        Color = window.theme.outline,
-                        Group = "outline",
+                        Color = c3rgb(),
                         Filled = false,
                         Parent = list_frame
                     })
 
-                    local list_scrollbar = utility:Draw("Square", v2new(list_frame.Size.X-3, 0), {
-                        Size = v2new(3, list_frame.Size.Y/(#self.options - self.visOptions + 1)),
-                        Color = window.theme.accent,
+                    local list_gradient = utility:Draw("Image", v2zero, {
+                        Size = list_frame.Size,
+                        Transparency = 0.3,
+                        Parent = list_frame
+                    })
+
+                    local list_scrollbar = utility:Draw("Square", v2new(list_frame.Size.X-6, 0), {
+                        Size = v2new(6, list_frame.Size.Y/(#self.options - self.visOptions + 1)),
+                        Color = window.accent,
                         Group = "accent",
                         Parent = list_frame
                     })
@@ -1972,11 +1799,13 @@ function library.Window(self, info, theme)
                         list_scrollbar.Visible = false
                     end
 
-                    self.instances = {list_frame, list_outline, list_scrollbar}
+                    utility:Image(list_gradient, "https://i.imgur.com/j9y4dux.png")
+
+                    self.instances = {list_frame, list_outline, list_gradient, list_scrollbar}
 
                     for i, v in pairs(self.options) do
                         local option_text = utility:Draw("Text", v2new(4, 2+16*(i-1)), {
-                            Color = (multi and table.find(self.value, v) or not multi and self.value == v) and window.theme.accent or c3rgb(255, 255, 255),
+                            Color = (multi and table.find(self.value, v) or not multi and self.value == v) and window.accent or c3rgb(255, 255, 255),
                             Outline = true,
                             Size = 13,
                             Font = 2,
@@ -2048,18 +1877,10 @@ function library.Window(self, info, theme)
                 end
 
                 function dropdown.Update(self)
-                    dropdown_frame.Size = v2new(section_frame.Size.X - 12, 18)
-                    dropdown_outline.Size = dropdown_frame.Size + v2new(2, 2)
-                    dropdown_gradient.Size = dropdown_frame.Size
-                    dropdown_image.SetOffset(v2new(dropdown_frame.Size.X - 14, 6))
-
                     if #self.instances > 1 then
-                        self.instances[1].Size = v2new(dropdown_frame.Size.X, self.instances[1].Size.Y)
-                        self.instances[2].Size = self.instances[1].Size + v2new(2, 2)
-
-                        for i, v in pairs({select(4, unpack(self.instances))}) do
+                        for i, v in pairs({select(5, unpack(self.instances))}) do
                             if multi and table.find(self.value, v.Text) or not multi and self.value == v.Text then
-                                v.Color = window.theme.accent
+                                v.Color = window.accent
                             else
                                 v.Color = c3rgb(255, 255, 255)
                             end
@@ -2075,9 +1896,9 @@ function library.Window(self, info, theme)
                             end
                         end
 
-                        local max_y_pos = self.instances[1].Size.Y - self.instances[3].Size.Y
+                        local max_y_pos = self.instances[1].Size.Y - self.instances[4].Size.Y
                         
-                        self.instances[3].SetOffset(v2new(self.instances[1].Size.X-self.instances[3].Size.X, max_y_pos * ((1/(#self.options-self.visOptions))*(self.scrolling[1]-1))))
+                        self.instances[4].SetOffset(v2new(self.instances[1].Size.X-6, max_y_pos * ((1/(#self.options-self.visOptions))*(self.scrolling[1]-1))))
                     end
                 end
 
@@ -2099,7 +1920,7 @@ function library.Window(self, info, theme)
                     if input.UserInputType == Enum.UserInputType.MouseButton1 and main_frame.Visible and (tab.on or table.find(window.rna, section)) then
                         if #dropdown.instances > 1 then
                             if utility:MouseOverDrawing(dropdown.instances[1]) then
-                                local option_counter = (uis:GetMouseLocation().Y - (dropdown.instances[1].Position.Y+2))/16
+                                local option_counter = (uis:GetMouseLocation().Y - dropdown.instances[1].Position.y)/16
 
                                 if option_counter%1 ~= 0 then
                                     option_counter = math.floor(option_counter)+1
@@ -2159,8 +1980,6 @@ function library.Window(self, info, theme)
                 
                 self:UpdateScale(39)
 
-                table.insert(self.things.dropdowns, dropdown)
-
                 return dropdown
                 
             end
@@ -2171,193 +1990,6 @@ function library.Window(self, info, theme)
 
             function section.Colorpicker(self, info)
                 return self:_Colorpicker(info, {v2new(section_frame.Size.X - 36, self:NextObjectPosition() + 2), v2new(6, self:NextObjectPosition())}, section_frame, true, tab.name .. section.name .. info.name, {})
-            end
-
-            function section.List(self, info)
-                info = info or {}
-
-                local name = info.name or "list"
-                local options = info.options or {"option 1", "option 2"}
-                local def = info.def or info.default or options[1]
-                local flag = info.flag
-                local pointer = info.pointer or tab.name .. section.name .. name 
-
-                local list = {name = name, value = def, scroll = {}, options = options, flag = flag, pointer = pointer, opinst = {}, lloop = nil}
-
-                if pointer then
-                    library.pointers[pointer] = list
-                end
-
-                local list_title = utility:Draw("Text", v2new(6, self:NextObjectPosition()-2), {
-                    Color = c3rgb(255, 255, 255),
-                    Outline = true,
-                    Size = 13,
-                    Font = 2,
-                    Text = name,
-                    Parent = section_frame
-                })
-
-                local list_frame = utility:Draw("Square", v2new(0, 15), {
-                    Color = window.theme.dcont,
-                    Group = "dcont",
-                    Size = v2new(section_frame.Size.X - 12, 140),
-                    Parent = list_title
-                })
-
-                local list_frame_outline = utility:Draw("Square", v2new(-1, -1), {
-                    Color = window.theme.outline,
-                    Group = "outline",
-                    Size = list_frame.Size + v2new(2, 2),
-                    Filled = false,
-                    Parent = list_frame
-                })
-
-                local list_frame_scrollbar = utility:Draw("Square", v2new(list_frame.Size.X-3, 0), {
-                    Color = window.theme.accent,
-                    Group = "accent",
-                    Size = v2new(3, 0),
-                    Parent = list_frame
-                })
-
-                function list.fix_string(self, value)
-                    local max_symbols = math.floor(list_frame.Size.X/7)
-
-                    return #value < max_symbols and value or value:sub(1, max_symbols-3) .. "..."
-                end
-
-                function list.draw_options(self)
-                    for i, v in pairs(self.opinst) do
-                        v.Remove()
-                    end
-
-                    table.clear(self.opinst)
-
-                    self.scroll = {1, 10}
-
-                    for i, text in pairs(self.options) do
-
-                        local list_option = utility:Draw("Text", v2new(3, (i-1)*14), {
-                            Color = self.value == text and window.theme.accent or c3rgb(255, 255, 255),
-                            Outline = true,
-                            Size = 13,
-                            Font = 2,
-                            Text = self:fix_string(text),
-                            Visible = i >= self.scroll[1] and i <= self.scroll[2],
-                            Parent = list_frame
-                        })
-
-                        table.insert(self.opinst, list_option)
-
-                    end
-
-                    self:update()
-                end
-
-                function list.update(self)
-                    list_frame.Size = v2new(section_frame.Size.X - 12, 140)
-                    list_frame_outline.Size = list_frame.Size + v2new(2, 2)
-
-                    for i, v in pairs(self.opinst) do
-                        v.Visible = list_frame.Visible and i >= self.scroll[1] and i <= self.scroll[2]
-                        if v.Visible then
-                            v.Color = self.value == self.options[i] and window.theme.accent or c3rgb(255, 255, 255)
-                            v.SetOffset(v2new(3, (i - self.scroll[1])*14))
-                        end
-                    end
-
-                    list_frame_scrollbar.Visible = list_frame.Visible and #self.options > 10 and true or false
-                    list_frame_scrollbar.Size = v2new(3, list_frame.Size.Y / (1 + #self.options - 10))
-
-                    if self.lloop then
-                        self.lloop:Disconnect()
-                        self.lloop = nil
-                    end
-
-                    local elapsed, from, to = 0, list_frame_scrollbar.GetOffset().Y, ((1/(#self.options-10)*(self.scroll[1]-1)))*(list_frame.Size.Y-list_frame_scrollbar.Size.Y)
-
-                    local loop; loop = utility:Connect(rs.Heartbeat, function(delta)
-                        if elapsed == 0.1 then
-
-                            list_frame_scrollbar.SetOffset(v2new(list_frame.Size.X-3, to))
-
-                            loop:Disconnect()
-                        end
-
-                        local ptc = (elapsed/0.1)^3
-
-                        list_frame_scrollbar.SetOffset(v2new(list_frame.Size.X-3, from + (to-from) * ptc))
-
-                        elapsed = math.clamp(elapsed + delta, 0, 0.1)
-                    end)
-
-                    self.lloop = loop
-                end
-
-                function list.Refresh(self, new_options)
-                    self.options = new_options
-
-                    self:draw_options()
-                end
-
-                function list.Get(self)
-                    return self.value
-                end
-
-                function list.Set(self, value)
-                    self.value = value
-
-                    if self.flag then
-                        library.flags[flag] = self.value
-                    end
-
-                    self:update()
-                end
-
-                utility:Connect(uis.InputBegan, function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseButton1 and main_frame.Visible and (tab.on or table.find(window.rna, section)) and not window:FakeRealMouseFuckingImAloneGoingToKillMyselfWithKnife(section) and utility:MouseOverDrawing(list_frame) then
-                        local offset = uis:GetMouseLocation().Y - list_frame.Position.Y
-
-                        local option_index = math.clamp(offset/14, 1, 10)
-
-                        if option_index % 1 ~= 0 then
-                            option_index = math.floor(option_index) + 1
-                        end
-
-                        local index = list.scroll[1] - 1 + option_index
-
-                        if list.options[index] then
-                            list:Set(list.options[index])
-                        end
-                    end
-                end)
-
-                utility:Connect(uis.InputChanged, function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseWheel and main_frame.Visible and (tab.on or table.find(window.rna, section)) and not window:FakeRealMouseFuckingImAloneGoingToKillMyselfWithKnife(section) and utility:MouseOverDrawing(list_frame) then
-                        local direction = input.Position.Z > 0 and "up" or "down"
-                        
-                        local min, max = list.scroll[1], list.scroll[2]
-
-                        if direction == "up" then
-                            list.scroll[1] = min ~= 1 and min - 1 or min
-                            list.scroll[2] = min ~= 1 and max - 1 or max
-                        else
-                            list.scroll[1] = max ~= #list.options and min + 1 or min
-                            list.scroll[2] = max ~= #list.options and max + 1 or max
-                        end
-
-                        list:update()
-                    end
-                end)
-
-                list:draw_options()
-
-                self.instances = utility:Combine(self.instances, {list_title, list_frame, list_frame_outline, list_frame_scrollbar, unpack(list.opinst)})
-
-                self:UpdateScale(153)
-
-                table.insert(self.things.lists, list)
-
-                return list
             end
 
             section.instances = {section_frame, section_inline, section_outline, section_title, section_title_bold, section_accent, section_accent2}
@@ -2389,7 +2021,7 @@ function library.Window(self, info, theme)
             return utility:MouseOverDrawing(self.shit.dropdown.instances[1])
         elseif self.shit.keybind ~= nil and #self.shit.keybind.minst > 1 then
             return utility:MouseOverDrawing(self.shit.keybind.minst[1])
-        elseif self.shit.colorpicker ~= nil and #self.shit.colorpicker.instances > 1 then
+        elseif self.shit.colorpicker ~= nil and #self.shit.colorpicker > 1 then
             return utility:MouseOverDrawing(self.shit.colorpicker.instances[1])
         end
 
@@ -2407,18 +2039,12 @@ function library.Window(self, info, theme)
         return false
     end
 
-    function window.NewTheme(self, theme)
-        self.theme = theme
-
-        for i, _ in pairs(self.theme) do
-            for _, obj in pairs(library.groups[i]) do
-                obj.Color = self.theme[i]
-            end
+    function window.NewAccent(self, new_accent)
+        for i, v in pairs(library.groups.accent) do
+            v[1].Color = new_accent
         end
 
-        for _, tab in pairs(self.tabs) do
-            tab:Update()
-        end
+        self.accent = new_accent
     end
 
     function window.SelectTab(self, name)
@@ -2435,23 +2061,6 @@ function library.Window(self, info, theme)
 
         for _, v in pairs(self.connections["tab"] or {}) do
             v(name)
-        end
-    end
-
-    function window.Resize(self, size)
-        main_frame.Size = size
-        main_frame_outline.Size = main_frame.Size + v2new(2, 2)
-        main_frame_accent.Size = main_frame.Size + v2new(4, 4)
-
-        pretab_frame.Size = size - v2new(12, 26)
-        pretab_frame_inline.Size = pretab_frame.Size + v2new(2, 2)
-        pretab_frame_outline.Size = pretab_frame.Size + v2new(4, 4)
-
-        tabs_frame.Size = size - v2new(24, 55)
-        tabs_frame_outline.Size = tabs_frame.Size + v2new(2, 2)
-
-        for i, v in pairs(self.tabs) do
-            v:Update()
         end
     end
 
@@ -2541,10 +2150,6 @@ function library.Window(self, info, theme)
             uis.MouseIconEnabled = false
         end
 
-        for i, v in pairs(self.tabs) do
-            v:Update()
-        end
-
         self:HideUselessDumbassFuckingShitStopPastingMyCodePleaseYouAreSkidAndImGayILikeBigBlackManOkNoProblemThisIsASexcretFuncteiotieitns4epoivi2n45obvi6j45bv74gvho4hgv487()
     end
 
@@ -2560,14 +2165,12 @@ function library.Window(self, info, theme)
             local dur = info.dur or info.duration or 3
             local show_dur_bar = info.show_dur_bar or info.sdb or true
             local pulse = info.pulse or false
-            local pulse_color = info.pulsecolor or info.pulse_color or info.pc or {c3rgb(0, 0, 0), c3rgb(194, 164, 16)}
-            local text_highlight = info.th or info.text_highlight or {}
+            local pulse_color = info.pulsecolor or info.pulse_color or info.pc or {c3rgb(), c3rgb(194, 164, 16)}
 
             local ntif = {text = text, dur = dur, pulse = pulse, pc = pulse_color, pm = 1, ptick = 0, create_tick = tick(), sdb = show_dur_bar, instances = {}}
 
             local ntif_frame = utility:Draw("Square", nil, {
-                Color = window.theme.lcont,
-                Group = "lcont",
+                Color = c3rgb(40, 40, 40),
                 Size = v2new(7 + utility:GetPlexSize(text), 4 + (#text:split("\n")*13)),
                 Position = v2new(-utility:GetPlexSize(text), 0)
             }, true)
@@ -2585,8 +2188,7 @@ function library.Window(self, info, theme)
             end
 
             local ntif_frame_outline = utility:Draw("Square", v2new(-1, -1), {
-                Color = window.theme.outline,
-                Group = "outline",
+                Color = c3rgb(),
                 Size = ntif_frame.Size + v2new(2, 2),
                 Filled = false,
                 Parent = ntif_frame
@@ -2602,7 +2204,7 @@ function library.Window(self, info, theme)
             }, true)
 
             local ntif_dur_line = utility:Draw("Square", v2new(0, ntif_frame.Size.Y), {
-                Color = window.theme.accent,
+                Color = window.accent,
                 Group = "accent",
                 Size = v2new(ntif_frame.Size.X / 5, 1),
                 Visible = ntif.sdb,
@@ -2611,29 +2213,10 @@ function library.Window(self, info, theme)
 
             local ntif_accent = utility:Draw("Square", v2zero, {
                 Size = v2new(2, ntif_frame.Size.Y),
-                Color = not ntif.pulse and window.theme.accent or ntif.pc[1],
+                Color = not ntif.pulse and window.accent or ntif.pc[1],
                 Group = "accent",
                 Parent = ntif_frame
             }, true)
-
-            local highligted = {}
-
-            for _, v in pairs(text_highlight) do
-                local s, e = ntif.text:find(v[1])
-
-                if s and e then
-                    local ntif_high = utility:Draw("Text", v2new((s-1)*7, 0), {
-                        Color = v[2],
-                        Outline = true,
-                        Size = 13,
-                        Font = 2,
-                        Text = ntif.text:sub(s, e),
-                        Parent = ntif_text
-                    }, true)
-    
-                    table.insert(highligted, ntif_high)
-                end
-            end
 
             ntif.lupapupa = utility:Connect(rs.Heartbeat, function()
                 if ntif.sdb then
@@ -2683,7 +2266,7 @@ function library.Window(self, info, theme)
                 notiflist:reposition()
             end
 
-            ntif.instances = {ntif_frame, ntif_frame_outline, ntif_text, ntif_dur_line, ntif_accent, unpack(highligted)}
+            ntif.instances = {ntif_frame, ntif_frame_outline, ntif_text, ntif_dur_line, ntif_accent}
 
             table.insert(self.ntifs, ntif)
 
@@ -2696,23 +2279,16 @@ function library.Window(self, info, theme)
             for i, v in pairs(self.ntifs) do
                 local position = v2new(19, position_to_go)
 
-                local lerp_table = {Position = position}
-
                 if v.instances[1].Position.X < 0 then
-                    v.instances[1].Position = position + v2new(-4, 7)
+                    v.instances[1].Position = position + v2new(0, 7)
 
                     for i, v in pairs(v.instances) do
                         v.Transparency = 0
-                        
-                        if i == 1 then
-                            lerp_table.Transparency = 1
-                        else
-                            v.Lerp({Transparency = 1}, 0.1, false)
-                        end
+                        v.Lerp({Transparency = 1}, 0.1)
                     end
                 end
 
-                v.instances[1].Lerp(lerp_table, 0.1, false)
+                v.instances[1].Lerp({Position = position}, 0.1)
 
                 position_to_go = position_to_go + v.instances[1].Size.Y + self.interval
             end
@@ -2727,21 +2303,19 @@ function library.Window(self, info, theme)
         local kblist = {visible = false, instances = {}}
 
         local kblist_frame = utility:Draw("Square", v2zero, {
-            Color = window.theme.lcont,
-            Group = "lcont",
+            Color = c3rgb(40, 40, 40),
             Size = v2new()
         }, true)
 
         local kblist_outline = utility:Draw("Square", v2new(-1, -1), {
-            Color = window.theme.outline,
-            Group = "outline",
+            Color = c3rgb(),
             Size = kblist_frame.Size + v2new(2, 2),
             Filled = false,
             Parent = kblist_frame
         }, true)
 
         local kblist_accent = utility:Draw("Square", v2zero, {
-            Color = window.theme.accent,
+            Color = window.accent,
             Size = v2new(kblist_frame.Size.X, 1),
             Group = "accent",
             Parent = kblist_frame
@@ -2812,29 +2386,26 @@ function library.Window(self, info, theme)
         local watermark = {text = "worsst fucking ui without doxxs", visible = false, instances = {}}
 
         local watermark_frame = utility:Draw("Square", v2zero, {
-            Color = window.theme.lcont,
-            Group = "lcont",
+            Color = c3rgb(40, 40, 40),
             Size = v2new(0, 20),
         }, true)
 
         local watermark_inline = utility:Draw("Square", v2new(-1, -1), {
-            Color = window.theme.dcont,
-            Group = "dcont",
+            Color = c3rgb(20, 20, 20),
             Size = watermark_frame.Size + v2new(2, 2),
             Filled = false,
             Parent = watermark_frame
         }, true)
 
         local watermark_outline = utility:Draw("Square", v2new(-2, -2), {
-            Color = window.theme.outline,
-            Group = "outline",
+            Color = c3rgb(0, 0, 0),
             Size = watermark_frame.Size + v2new(4, 4),
             Filled = false,
             Parent = watermark_frame
         }, true)
 
         local watermark_accent = utility:Draw("Square", v2new(), {
-            Color = window.theme.accent,
+            Color = window.accent,
             Size = v2new(watermark_frame.Size.X, 1),
             Group = "accent",
             Parent = watermark_frame
@@ -2900,21 +2471,19 @@ function library.Window(self, info, theme)
         local tooltip = {instances = {}}
 
         local tt_frame = utility:Draw("Square", nil, {
-            Color = self.theme.dcont,
-            Group = "dcont",
+            Color = c3rgb(20, 20, 20),
             Size = v2new(0, 17)
         })
 
         local tt_frame_outline = utility:Draw("Square", v2new(-1, -1), {
-            Color = self.theme.outline,
-            Group = "outline",
+            Color = c3rgb(),
             Size = tt_frame.Size + v2new(2, 2),
             Filled = false,
             Parent = tt_frame
         })
 
         local tt_accent = utility:Draw("Square", v2zero, {
-            Color = self.theme.accent,
+            Color = self.accent,
             Size = v2new(2, tt_frame.Size.Y),
             Group = "accent",
             Parent = tt_frame
@@ -2970,7 +2539,7 @@ function library.Window(self, info, theme)
         local cursor = {position = v2zero, instances = {}}
 
         local triangle = utility:Draw("Triangle", v2zero, {
-            Color = window.theme.accent,
+            Color = window.accent,
             Group = "accent",
             Filled = true,
             Thickness = 0,
@@ -2978,8 +2547,7 @@ function library.Window(self, info, theme)
         })
 
         local triangle_outline = utility:Draw("Triangle", v2zero, {
-            Color = window.theme.outline,
-            Group = "outline",
+            Color = c3rgb(),
             Filled = false,
             Thickness = 1,
             ZIndex = 66
@@ -3014,10 +2582,10 @@ function library.Window(self, info, theme)
 
     function window.Init(self)
 
-        for i, v in pairs(self.tabs) do
-            v:Update()
+        for _, tab in pairs(self.tabs) do
+            tab:Update()
         end
-		
+
         if #self.tabs > 0 then
             self.saved_settings = {}
 
@@ -3037,50 +2605,54 @@ function library.Window(self, info, theme)
                     if input.UserInputType == Enum.UserInputType.MouseButton2 then
                         local slider_visible = false
 
-                        for _, section in pairs(window.sshit.sections) do
+                        for _, tab in pairs(self.tabs) do
                             if slider_visible then break end
-                            for _, slider in pairs(section.things.sliders) do
+                            for _, section in pairs(tab.sections) do
                                 if slider_visible then break end
 
-                                local section_frame = section.instances[1]
-                                local slider_title = slider.instances[1]
+                                for _, slider in pairs(section.things.sliders) do
+                                    if slider_visible then break end
 
-                                if utility:MouseOverPosition({section_frame.Position + v2new(0, slider_title.GetOffset().Y), section_frame.Position + v2new(section_frame.Size.X, slider_title.GetOffset().Y + 29)}) then
-                                    slider_visible = true
+                                    local section_frame = section.instances[1]
+                                    local slider_title = slider.instances[1]
 
-                                    slider_section:SetPositionIHateMyselfAndIWannaDieOk(slider_title.Position + v2new(2, 2))
+                                    if utility:MouseOverPosition({section_frame.Position + v2new(0, slider_title.GetOffset().Y), section_frame.Position + v2new(section_frame.Size.X, slider_title.GetOffset().Y + 29)}) then
+                                        slider_visible = true
 
-                                    anim_min.min = slider.min
-                                    anim_min.max = slider.max
-                                    anim_min.dec = slider.dec
+                                        slider_section:SetPositionIHateMyselfAndIWannaDieOk(slider_title.Position + v2new(2, 2))
 
-                                    anim_max.min = slider.min
-                                    anim_max.max = slider.max
-                                    anim_max.dec = slider.dec
+                                        anim_min.min = slider.min
+                                        anim_min.max = slider.max
+                                        anim_min.dec = slider.dec
 
-                                    slider_flag = slider.pointer
+                                        anim_max.min = slider.min
+                                        anim_max.max = slider.max
+                                        anim_max.dec = slider.dec
 
-                                    if self.saved_settings[slider.pointer] then
-                                        local settings = self.saved_settings[slider.pointer]
+                                        slider_flag = slider.pointer
 
-                                        anim_enabled:Set(settings.enabled)
-                                        anim_min:Set(settings.min)
-                                        anim_max:Set(settings.max)
-                                        anim_speed:Set(settings.speed)
-                                    else
-                                        anim_enabled:Set(false)
-                                        anim_min:Set(slider.min)
-                                        anim_max:Set(slider.max)
-                                        anim_speed:Set(1)
+                                        if self.saved_settings[slider.pointer] then
+                                            local settings = self.saved_settings[slider.pointer]
 
-                                        self.saved_settings[slider.pointer] = {
-                                            enabled = false,
-                                            min = slider.min,
-                                            max = slider.max,
-                                            speed = 1,
-                                            dec = slider.dec,
-                                            random_angle_offset = math.random(-720, 720)
-                                        }
+                                            anim_enabled:Set(settings.enabled)
+                                            anim_min:Set(settings.min)
+                                            anim_max:Set(settings.max)
+                                            anim_speed:Set(settings.speed)
+                                        else
+                                            anim_enabled:Set(false)
+                                            anim_min:Set(slider.min)
+                                            anim_max:Set(slider.max)
+                                            anim_speed:Set(1)
+
+                                            self.saved_settings[slider.pointer] = {
+                                                enabled = false,
+                                                min = slider.min,
+                                                max = slider.max,
+                                                speed = 1,
+                                                dec = slider.dec,
+                                                random_angle_offset = math.random(-720, 720)
+                                            }
+                                        end
                                     end
                                 end
                             end
@@ -3178,5 +2750,3 @@ function library.Window(self, info, theme)
 
     return window
 end
-
-return library, utility
