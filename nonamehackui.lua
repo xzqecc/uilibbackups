@@ -2746,6 +2746,7 @@ function library.Window(self, info, theme)
     end
 
     function window.Keybinds(self,info)
+	info = info or {}
 	local vis = info.vis or info.visble
         local kblist = {visible = false, instances = {}}
 
