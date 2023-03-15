@@ -2722,8 +2722,9 @@ function library.Window(self, info, theme)
         self.ntiflist = notiflist
     end
 
-    function window.Keybinds(self)
-
+    function window.Keybinds(self, info)
+	info = info or {}
+	local vis = info.vis or info.visible
         local kblist = {visible = false, instances = {}}
 
         local kblist_frame = utility:Draw("Square", v2zero, {
@@ -2801,7 +2802,7 @@ function library.Window(self, info, theme)
 
         kblist:Update()
         kblist:AdjustFuckingUselessShitNamedPositionIWantToDie(v2new(20, math.floor(utility:ScreenSize().Y/2)))
-        kblist:ShowHideFromMyLifePleaseSomebodyKillMeIDontWantToBeAliveRightNowImUselessInMyLife(false)
+        kblist:ShowHideFromMyLifePleaseSomebodyKillMeIDontWantToBeAliveRightNowImUselessInMyLife(vis)
 
         self.kblist = kblist
 
