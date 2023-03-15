@@ -2421,7 +2421,7 @@ function library.Window(self, info, theme)
             kblist_frame.Position = pos
         end
 
-        function kblist.ShowHideFromMyLifePleaseSomebodyKillMeIDontWantToBeAliveRightNowImUselessInMyLife(self, visible)
+        function kblist.ShowHideFromMyLifePleaseSomebodyKillMeIDontWantToBeAliveRightNowImUselessInMyLife(self, vis)
             for i, v in pairs(self.instances) do
                 v.Visible = visible
             end
