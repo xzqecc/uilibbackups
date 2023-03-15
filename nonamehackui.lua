@@ -27,6 +27,7 @@ local library = {
     flags = {},
     pointers = {},
     groups = {},
+    fade_instances = {},
     loaded = false,
 }
 
@@ -92,6 +93,9 @@ do
                 end
             end
         })
+        rawset(fakeDraw, "getDefaultTransparency", function(self)
+            return rawget(self, "__properties").Transparency or 1
+        end)
         rawset(fakeDraw, "Remove", function()
             if rawget(fakeDraw, "__OBJECT_EXIST") then
                 draw:Remove()
@@ -510,6 +514,10 @@ function library.Window(self, info, theme)
             self:Update()
         end
 
+        function tab.UpdateColor(self)
+            tab_frame.Color = self.on and window.theme.lcont or window.theme.dcont
+        end
+
         function tab.Update(self)
 
             -- // loop for every side (left, right)
@@ -521,7 +529,7 @@ function library.Window(self, info, theme)
                 for i, v in pairs(side) do
 
                     -- // update it's size
-
+                    
                     v:Update()
 
                     -- // count y offset
@@ -548,7 +556,7 @@ function library.Window(self, info, theme)
                 end
             end
 
-            tab_frame.Color = self.on and window.theme.lcont or window.theme.dcont
+            self:UpdateColor()
 
             for i, v in pairs(self.sections) do
                 v:Update()
@@ -639,6 +647,10 @@ function library.Window(self, info, theme)
             function section.Show(self)
                 for i, v in pairs(self.instances) do
                     v.Visible = true
+
+                    if v.Transparency ~= v:getDefaultTransparency() and not window.fading then
+                        v.Transparency = v:getDefaultTransparency()
+                    end
                 end
             end
 
@@ -2250,6 +2262,8 @@ function library.Window(self, info, theme)
 
                     end
 
+                    section.instances = utility:Combine(section.instances, {unpack(self.opinst)})
+
                     self:update()
                 end
 
@@ -2268,29 +2282,7 @@ function library.Window(self, info, theme)
                     list_frame_scrollbar.Visible = list_frame.Visible and #self.options > 10 and true or false
                     list_frame_scrollbar.Size = v2new(3, list_frame.Size.Y / (1 + #self.options - 10))
 
-                    if self.lloop then
-                        self.lloop:Disconnect()
-                        self.lloop = nil
-                    end
-
-                    local elapsed, from, to = 0, list_frame_scrollbar.GetOffset().Y, ((1/(#self.options-10)*(self.scroll[1]-1)))*(list_frame.Size.Y-list_frame_scrollbar.Size.Y)
-
-                    local loop; loop = utility:Connect(rs.Heartbeat, function(delta)
-                        if elapsed == 0.1 then
-
-                            list_frame_scrollbar.SetOffset(v2new(list_frame.Size.X-3, to))
-
-                            loop:Disconnect()
-                        end
-
-                        local ptc = (elapsed/0.1)^3
-
-                        list_frame_scrollbar.SetOffset(v2new(list_frame.Size.X-3, from + (to-from) * ptc))
-
-                        elapsed = math.clamp(elapsed + delta, 0, 0.1)
-                    end)
-
-                    self.lloop = loop
+                    list_frame_scrollbar.SetOffset(v2new(list_frame.Size.X-3, ((1/(#self.options-10)*(self.scroll[1]-1)))*(list_frame.Size.Y-list_frame_scrollbar.Size.Y)))
                 end
 
                 function list.Refresh(self, new_options)
@@ -2351,7 +2343,7 @@ function library.Window(self, info, theme)
 
                 list:draw_options()
 
-                self.instances = utility:Combine(self.instances, {list_title, list_frame, list_frame_outline, list_frame_scrollbar, unpack(list.opinst)})
+                self.instances = utility:Combine(self.instances, {list_title, list_frame, list_frame_outline, list_frame_scrollbar})
 
                 self:UpdateScale(153)
 
@@ -2382,6 +2374,20 @@ function library.Window(self, info, theme)
 
         return tab
 
+    end
+
+    function window.Update(self)
+        for i, v in pairs(self.rna) do
+            v:Update()
+        end
+
+        for i, v in pairs(self.tabs) do
+            if v == window.sshit then
+                v:Update()
+            else
+                v:UpdateColor()
+            end
+        end
     end
 
     function window.FakeRealMouseFuckingImAloneGoingToKillMyselfWithKnife(self, section)
@@ -2416,16 +2422,17 @@ function library.Window(self, info, theme)
             end
         end
 
-        for _, tab in pairs(self.tabs) do
-            tab:Update()
-        end
+        self:Update()
     end
 
     function window.SelectTab(self, name)
 
+        if self.fading then return end
+
         for i, v in pairs(self.tabs) do
             if v.instances[3].Text == name then
                 v:Show()
+                v:Update()
 
                 self.sshit = v
             else
@@ -2450,9 +2457,7 @@ function library.Window(self, info, theme)
         tabs_frame.Size = size - v2new(24, 55)
         tabs_frame_outline.Size = tabs_frame.Size + v2new(2, 2)
 
-        for i, v in pairs(self.tabs) do
-            v:Update()
-        end
+        self:Update()
     end
 
     function window.HideUselessDumbassFuckingShitStopPastingMyCodePleaseYouAreSkidAndImGayILikeBigBlackManOkNoProblemThisIsASexcretFuncteiotieitns4epoivi2n45obvi6j45bv74gvho4hgv487(self)
@@ -2500,6 +2505,30 @@ function library.Window(self, info, theme)
             v(not main_frame.Visible)
         end
 
+        local fade_instances = utility:Combine(library.fade_instances, {
+            main_frame, main_frame_accent, main_frame_title, main_frame_outline,
+            pretab_frame, pretab_frame_inline, pretab_frame_outline,
+            tabs_frame, tab_frame_accent, tabs_frame_outline
+        })
+
+        if self.cursor then
+            fade_instances = utility:Combine(fade_instances, self.cursor.instances)
+        end
+
+        for i, v in pairs(self.tabs) do
+            fade_instances = utility:Combine(fade_instances, v.instances)
+        end
+
+        for i, v in pairs(self.rna) do
+            fade_instances = utility:Combine(fade_instances, v.instances)
+        end
+
+        if self.sshit then
+            for _, s in pairs(self.sshit.sections) do
+                fade_instances = utility:Combine(fade_instances, s.instances)
+            end
+        end
+
         if main_frame.Visible then
             self.fading = true
 
@@ -2507,11 +2536,11 @@ function library.Window(self, info, theme)
                 self.tooltip:SetPosition(v2new(-1000, -1000))
             end
 
-            for i, v in pairs(library.drawings[1]) do
-                v[1].Lerp({Transparency = 0}, 0.2)
+            for i, v in pairs(fade_instances) do
+                v.Lerp({Transparency = 0}, 0.2)
 
                 task.delay(0.2, function()
-                    v[1].Visible = false
+                    v.Visible = false
 
                     self.fading = false
                 end)
@@ -2521,11 +2550,11 @@ function library.Window(self, info, theme)
         else
             self.fading = true
 
-            for i, v in pairs(library.drawings[1]) do
-                v[1].Visible = true
-                v[1].Transparency = 0
-    
-                v[1].Lerp({Transparency = v[2]}, 0.2)
+            for i, v in pairs(fade_instances) do
+                v.Visible = true
+                v.Transparency = 0
+
+                v.Lerp({Transparency = v:getDefaultTransparency()}, 0.2)
             end
 
             task.delay(0.2, function()
@@ -2534,16 +2563,10 @@ function library.Window(self, info, theme)
 
             local from = tick()
 
-            while tick()-from < 0.2 and task.wait() do
-                self:SelectTab(self.sshit.name)
-            end
-
             uis.MouseIconEnabled = false
         end
 
-        for i, v in pairs(self.tabs) do
-            v:Update()
-        end
+        self:Update()
 
         self:HideUselessDumbassFuckingShitStopPastingMyCodePleaseYouAreSkidAndImGayILikeBigBlackManOkNoProblemThisIsASexcretFuncteiotieitns4epoivi2n45obvi6j45bv74gvho4hgv487()
     end
@@ -2722,9 +2745,8 @@ function library.Window(self, info, theme)
         self.ntiflist = notiflist
     end
 
-    function window.Keybinds(self, info)
-	info = info or {}
-	local vis = info.vis or info.visible
+    function window.Keybinds(self,info)
+	local vis = info.vis or info.visble
         local kblist = {visible = false, instances = {}}
 
         local kblist_frame = utility:Draw("Square", v2zero, {
@@ -2856,7 +2878,7 @@ function library.Window(self, info, theme)
             Parent = watermark_frame
         }, true)
 
-        utility:Image(watermark_gradient, "https://s3.us-east-1.wasabisys.com/e-zimagehosting/7832f20c-64f3-46ac-bbdc-24b47117be2a/q7k8an2m.png")
+        utility:Image(watermark_gradient, "https://i.imgur.com/j9y4dux.png")
 
         watermark.instances = {watermark_frame, watermark_inline, watermark_outline, watermark_accent, watermark_gradient, watermark_title}
 
@@ -3014,9 +3036,7 @@ function library.Window(self, info, theme)
     end
 
     function window.Init(self)
-	local self = {
-			tabs = {},
-		}
+
         for _, tab in pairs(self.tabs) do
             tab:Update()
         end
@@ -3026,7 +3046,7 @@ function library.Window(self, info, theme)
 
             local slider_section = self.tabs[1]:Section({name = "Animation", rna = true})
             local anim_enabled = slider_section:Toggle({name = "Enabled", pointer = ""})
-            local anim_speed = slider_section:Slider({name = "Speed", min = 0.1, def = 1, max = 5, dec = 10, pointer = ""})
+            local anim_speed = slider_section:Slider({name = "Speed", min = 0.1, def = 1, max = 15, dec = 10, pointer = ""})
             local anim_min = slider_section:Slider({name = "Minimum value", min = 1, max = 2, pointer = ""})
             local anim_max = slider_section:Slider({name = "Maximum value", min = 1, max = 2, pointer = ""})
 
