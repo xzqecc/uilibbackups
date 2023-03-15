@@ -2351,7 +2351,91 @@ function library.Window(self, info, theme)
 
                 return list
             end
+		    function window.Keybinds(self,info)
+	info = info or {}
+	local vis = info.vis or info.visble
+        local kblist = {visible = false, instances = {}}
 
+        local kblist_frame = utility:Draw("Square", v2zero, {
+            Color = window.theme.lcont,
+            Group = "lcont",
+            Size = v2new()
+        }, true)
+
+        local kblist_outline = utility:Draw("Square", v2new(-1, -1), {
+            Color = window.theme.outline,
+            Group = "outline",
+            Size = kblist_frame.Size + v2new(2, 2),
+            Filled = false,
+            Parent = kblist_frame
+        }, true)
+
+        local kblist_accent = utility:Draw("Square", v2zero, {
+            Color = window.theme.accent,
+            Size = v2new(kblist_frame.Size.X, 1),
+            Group = "accent",
+            Parent = kblist_frame
+        }, true)
+
+        local kblist_title = utility:Draw("Text", v2new(3, 3), {
+            Color = c3rgb(255, 255, 255),
+            Outline = true,
+            Size = 13,
+            Font = 2,
+            Text = "keybinds",
+            Parent = kblist_frame
+        }, true)
+
+        local kblist_value = utility:Draw("Text", v2new(3, 17), {
+            Color = c3rgb(255, 255, 255),
+            Outline = true,
+            Size = 13,
+            Font = 2,
+            Text = "",
+            Parent = kblist_frame
+        }, true)
+
+        function kblist.Update(self)
+            local kbds_string = ""
+            local max_len = 56
+
+            for i, v in pairs(window.kbds) do
+                local keybind = library.pointers[v]
+
+                local string_add = ("[%s] %s: %s\n"):format(keybind.instances[5].Text, keybind.sname, keybind.name)
+
+                if utility:GetPlexSize(string_add) > max_len then
+                    max_len = utility:GetPlexSize(string_add)
+                end
+
+                kbds_string = kbds_string .. string_add
+            end
+
+            kblist_frame.Size = v2new(6 + max_len, 20 + ((#kbds_string:split("\n")-1)*13))
+            kblist_outline.Size = kblist_frame.Size + v2new(2, 2)
+            kblist_accent.Size = v2new(kblist_frame.Size.X, 1)
+            kblist_value.Text = kbds_string
+        end
+
+        function kblist.AdjustFuckingUselessShitNamedPositionIWantToDie(self, pos)
+            kblist_frame.Position = pos
+        end
+
+        function kblist.ShowHideFromMyLifePleaseSomebodyKillMeIDontWantToBeAliveRightNowImUselessInMyLife(self, visible)
+            for i, v in pairs(self.instances) do
+                v.Visible = visible
+            end
+        end
+
+        kblist.instances = {kblist_frame, kblist_outline, kblist_accent, kblist_title, kblist_value}
+
+        kblist:Update()
+        kblist:AdjustFuckingUselessShitNamedPositionIWantToDie(v2new(20, math.floor(utility:ScreenSize().Y/2)))
+        kblist:ShowHideFromMyLifePleaseSomebodyKillMeIDontWantToBeAliveRightNowImUselessInMyLife(vis)
+
+        self.kblist = kblist
+
+    end
             section.instances = {section_frame, section_inline, section_outline, section_title, section_title_bold, section_accent, section_accent2}
 
             if not section.rna then
@@ -2745,91 +2829,7 @@ function library.Window(self, info, theme)
         self.ntiflist = notiflist
     end
 
-    function window.Keybinds(self,info)
-	info = info or {}
-	local vis = info.vis or info.visble
-        local kblist = {visible = false, instances = {}}
 
-        local kblist_frame = utility:Draw("Square", v2zero, {
-            Color = window.theme.lcont,
-            Group = "lcont",
-            Size = v2new()
-        }, true)
-
-        local kblist_outline = utility:Draw("Square", v2new(-1, -1), {
-            Color = window.theme.outline,
-            Group = "outline",
-            Size = kblist_frame.Size + v2new(2, 2),
-            Filled = false,
-            Parent = kblist_frame
-        }, true)
-
-        local kblist_accent = utility:Draw("Square", v2zero, {
-            Color = window.theme.accent,
-            Size = v2new(kblist_frame.Size.X, 1),
-            Group = "accent",
-            Parent = kblist_frame
-        }, true)
-
-        local kblist_title = utility:Draw("Text", v2new(3, 3), {
-            Color = c3rgb(255, 255, 255),
-            Outline = true,
-            Size = 13,
-            Font = 2,
-            Text = "keybinds",
-            Parent = kblist_frame
-        }, true)
-
-        local kblist_value = utility:Draw("Text", v2new(3, 17), {
-            Color = c3rgb(255, 255, 255),
-            Outline = true,
-            Size = 13,
-            Font = 2,
-            Text = "",
-            Parent = kblist_frame
-        }, true)
-
-        function kblist.Update(self)
-            local kbds_string = ""
-            local max_len = 56
-
-            for i, v in pairs(window.kbds) do
-                local keybind = library.pointers[v]
-
-                local string_add = ("[%s] %s: %s\n"):format(keybind.instances[5].Text, keybind.sname, keybind.name)
-
-                if utility:GetPlexSize(string_add) > max_len then
-                    max_len = utility:GetPlexSize(string_add)
-                end
-
-                kbds_string = kbds_string .. string_add
-            end
-
-            kblist_frame.Size = v2new(6 + max_len, 20 + ((#kbds_string:split("\n")-1)*13))
-            kblist_outline.Size = kblist_frame.Size + v2new(2, 2)
-            kblist_accent.Size = v2new(kblist_frame.Size.X, 1)
-            kblist_value.Text = kbds_string
-        end
-
-        function kblist.AdjustFuckingUselessShitNamedPositionIWantToDie(self, pos)
-            kblist_frame.Position = pos
-        end
-
-        function kblist.ShowHideFromMyLifePleaseSomebodyKillMeIDontWantToBeAliveRightNowImUselessInMyLife(self, visible)
-            for i, v in pairs(self.instances) do
-                v.Visible = visible
-            end
-        end
-
-        kblist.instances = {kblist_frame, kblist_outline, kblist_accent, kblist_title, kblist_value}
-
-        kblist:Update()
-        kblist:AdjustFuckingUselessShitNamedPositionIWantToDie(v2new(20, math.floor(utility:ScreenSize().Y/2)))
-        kblist:ShowHideFromMyLifePleaseSomebodyKillMeIDontWantToBeAliveRightNowImUselessInMyLife(vis)
-
-        self.kblist = kblist
-
-    end
 
     function window.Watermark(self)
 
