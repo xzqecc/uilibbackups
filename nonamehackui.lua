@@ -2423,7 +2423,7 @@ function library.Window(self, info, theme)
 
         function kblist.ShowHideFromMyLifePleaseSomebodyKillMeIDontWantToBeAliveRightNowImUselessInMyLife(self, vis)
             for i, v in pairs(self.instances) do
-                v.Visible = visible
+                v.Visible = vis
             end
         end
 
